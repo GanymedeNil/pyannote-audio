@@ -400,9 +400,12 @@ class Audio:
 
         else:
             try:
-                data, _ = torchaudio.load(
-                    file["audio"], frame_offset=start_frame, num_frames=num_frames
-                )
+                if not ('temp_hack_cache' in file):
+                    file['temp_hack_cache'], _ = torchaudio.load(file["audio"])
+                data = file['temp_hack_cache'][:, start_frame: end_frame]
+                curr_frames = len(data[0])
+                if curr_frames != num_frames:
+                    data = F.pad(data, pad=(0, num_frames - curr_frames))
                 # rewind if needed
                 if isinstance(file["audio"], IOBase):
                     file["audio"].seek(0)
